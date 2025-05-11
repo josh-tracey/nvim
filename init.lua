@@ -42,7 +42,6 @@ P.S. You can delete this when you're done too. It's your config now :)
 --  NOTE: Must happen before plugins are required (otherwise wrong leader will be used)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
-
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    https://github.com/folke/lazy.nvim
 --    `:help lazy.nvim.txt` for more info
@@ -64,7 +63,6 @@ vim.keymap.set('n', '<C-h>', "<C-w>h", { desc = "Window left" })
 vim.keymap.set('n', '<C-l>', "<C-w>l", { desc ="Window right" })
 vim.keymap.set('n', '<C-j>', "<C-w>j", { desc ="Window down" })
 vim.keymap.set('n', '<C-k>', "<C-w>k", { desc ="Window up" })
-
 
 local function my_on_attach(bufnr)
   local api = require "nvim-tree.api"
@@ -149,6 +147,9 @@ performance = {
   {
     -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
+    opts = {
+      inlay_hints = { enabled = true },
+    },
     dependencies = {
       -- Automatically install LSPs to stdpath for neovim
       'williamboman/mason.nvim',
@@ -161,6 +162,23 @@ performance = {
       -- Additional lua configuration, makes nvim stuff amazing!
       'folke/neodev.nvim',
     },
+  },
+
+{
+  "folke/tokyonight.nvim",
+  lazy = false,
+  priority = 1000,
+  opts = {},
+},
+
+{
+    "zaldih/themery.nvim",
+    lazy = false,
+    config = function()
+      require("themery").setup({
+        -- add the config here
+      })
+    end
   },
 
   {
@@ -229,7 +247,7 @@ performance = {
     opts = {
       options = {
         icons_enabled = false,
-        theme = 'catppuccin',
+        theme = 'catppuccin-macchiato',
         component_separators = '|',
         section_separators = '',
       },
@@ -310,7 +328,7 @@ vim.o.mouse = 'a'
 -- Sync clipboard between OS and Neovim.
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
-vim.o.clipboard = 'unnamedplus'
+vim.o.clipboard = 'unnamed'
 
 vim.g.copilot_assume_mapped = true
 
@@ -318,13 +336,17 @@ vim.g.copilot_filetypes = {
     ["*"] = false,
     ["javascript"] = true,
     ["typescript"] = true,
-    ["lua"] = false,
+    ["typescriptreact"] = true,
+    ["javascriptreact"] = true,
+    ["lua"] = true,
     ["rust"] = true,
     ["c"] = true,
     ["c#"] = true,
     ["c++"] = true,
     ["go"] = true,
     ["python"] = true,
+    ["css"] = true,
+    ["scss"] = true,
   }
 
 -- Enable break indent
@@ -337,7 +359,7 @@ vim.o.undofile = true
 vim.o.ignorecase = true
 vim.o.smartcase = true
 vim.o.swapfile = false
-vim.o.colorcolumn = 160
+vim.o.colorcolumn = "80"
 
 -- Keep signcolumn on by default
 vim.wo.signcolumn = 'yes'
@@ -405,6 +427,10 @@ require('telescope').setup {
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
 
+
+
+
+
 -- Telescope live_grep in git root
 -- Function to find the git root directory based on the current buffer's path
 local function find_git_root()
@@ -439,6 +465,12 @@ local function live_grep_git_root()
   end
 end
 
+-- Set fzf path for telescope
+vim.g.fzf_path = '/opt/homebrew/opt/fzf/bin/fzf'
+vim.g.fzf_opts = ' --ansi --preview "bat --color=always --style=header,grid --line-range :500 {}"'
+--set rtp+=/opt/homebrew/opt/fzf
+
+
 vim.api.nvim_create_user_command('LiveGrepGitRoot', live_grep_git_root, {})
 
 -- See `:help telescope.builtin`
@@ -467,7 +499,7 @@ vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = 
 vim.defer_fn(function()
   require('nvim-treesitter.configs').setup {
     -- Add languages to be installed here that you want installed for treesitter
-    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash' },
+    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash', 'yaml', 'json', 'html', 'css', 'scss', 'markdown', 'markdown_inline' },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
     auto_install = false,
@@ -581,16 +613,22 @@ local on_attach = function(_, bufnr)
 end
 
 -- document existing key chains
-require('which-key').register {
-  ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
-  ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
-  ['<leader>g'] = { name = '[G]it', _ = 'which_key_ignore' },
-  ['<leader>h'] = { name = 'More git', _ = 'which_key_ignore' },
-  ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
-  ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
-  ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
-}
-
+require('which-key').add   {
+    { "<leader>c", group = "[C]ode" },
+    { "<leader>c_", hidden = true },
+    { "<leader>d", group = "[D]ocument" },
+    { "<leader>d_", hidden = true },
+    { "<leader>g", group = "[G]it" },
+    { "<leader>g_", hidden = true },
+    { "<leader>h", group = "More git" },
+    { "<leader>h_", hidden = true },
+    { "<leader>r", group = "[R]ename" },
+    { "<leader>r_", hidden = true },
+    { "<leader>s", group = "[S]earch" },
+    { "<leader>s_", hidden = true },
+    { "<leader>w", group = "[W]orkspace" },
+    { "<leader>w_", hidden = true },
+  }
 -- mason-lspconfig requires that these setup functions are called in this order
 -- before setting up the servers.
 require('mason').setup()
@@ -632,18 +670,20 @@ local mason_lspconfig = require 'mason-lspconfig'
 
 mason_lspconfig.setup {
   ensure_installed = vim.tbl_keys(servers),
+  
 }
 
-mason_lspconfig.setup_handlers {
-  function(server_name)
-    require('lspconfig')[server_name].setup {
-      capabilities = capabilities,
-      on_attach = on_attach,
-      settings = servers[server_name],
-      filetypes = (servers[server_name] or {}).filetypes,
-    }
-  end,
-}
+
+--mason_lspconfig.setup_handlers {
+--  function(server_name)
+--    require('lspconfig')[server_name].setup {
+--      capabilities = capabilities,
+--      on_attach = on_attach,
+--      settings = servers[server_name],
+--      filetypes = (servers[server_name] or {}).filetypes,
+--    }
+--  end,
+--}
 
 -- [[ Configure nvim-cmp ]]
 -- See `:help cmp`
@@ -695,6 +735,11 @@ cmp.setup {
     { name = 'luasnip' },
   },
 }
+
+require("themery").setup({
+  themes = {"catppuccin", "tokyonight"}, -- Your list of installed colorschemes.
+  livePreview = true, -- Apply theme while picking. Default to true.
+})
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
